@@ -1,0 +1,292 @@
+.quest-button-enrollable>span[class*="iconBadge"] {
+    background-color: var(--status-danger);
+}
+
+.quest-button-enrolled>span[class*="iconBadge"] {
+    background-color: var(--status-warning);
+}
+
+.quest-button-claimable>span[class*="iconBadge"] {
+    background-color: var(--status-positive);
+}
+
+.quest-button svg:has(> [mask^="url(#svg-mask-panel-button)"]) {
+    display: none;
+}
+
+.vc-quest-popout-container {
+    width: 240px;
+    background: #202024;
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    color: var(--text-normal, #dbdee1);
+    font-family: var(--font-primary);
+    transform-origin: bottom center;
+    animation: vc-popout-appear 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.15) forwards;
+}
+
+.vc-quest-popout-container.closing {
+    animation: vc-popout-disappear 0.15s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes vc-popout-appear {
+    0% { opacity: 0; transform: translateY(16px) scale(0.9); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes vc-popout-disappear {
+    0% { opacity: 1; transform: translateY(0) scale(1); }
+    100% { opacity: 0; transform: translateY(8px) scale(0.95); }
+}
+
+.vc-quest-popout-badge {
+    font-size: 11px;
+    background: var(--brand-experiment, #5865F2);
+    color: #fff;
+    border-radius: 12px;
+    padding: 2px 8px;
+    font-weight: 700;
+}
+
+.vc-quest-popout-empty {
+    padding: 32px 16px;
+    text-align: center;
+    color: var(--text-muted, #949ba4);
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.vc-quest-popout-list {
+    display: flex;
+    flex-direction: column;
+    padding: 4px 12px 12px;
+    gap: 8px;
+    scroll-behavior: smooth;
+}
+
+.vc-quest-popout-list.scrollable {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.vc-quest-popout-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.vc-quest-popout-list::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+}
+
+.vc-quest-popout-list::-webkit-scrollbar-thumb {
+    background-color: #5a5a66;
+    border-radius: 4px;
+    min-height: 40px;
+}
+
+.vc-quest-popout-list::-webkit-scrollbar-thumb:hover {
+    background-color: #7a7a88;
+}
+
+.vc-quest-item {
+    border: 1px solid var(--background-modifier-accent, #2b2d31);
+    padding: 12px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    gap: 8px;
+    position: relative;
+    background-size: cover;
+    background-position: center;
+    overflow: hidden;
+    isolation: isolate;
+    transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.2s cubic-bezier(0.2, 0, 0, 1);
+    opacity: 0;
+    animation: vc-item-stagger 0.4s cubic-bezier(0.2, 0, 0, 1) forwards;
+}
+
+.vc-quest-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.vc-quest-item::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to right, rgba(17, 18, 20, 0.9) 0%, rgba(17, 18, 20, 0.5) 100%);
+    z-index: 0;
+    border-radius: 7px;
+}
+
+.vc-quest-item:hover::before {
+    background: linear-gradient(to right, rgba(17, 18, 20, 0.95) 0%, rgba(17, 18, 20, 0.6) 100%);
+}
+
+.vc-quest-item-header {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    position: relative;
+    z-index: 1;
+}
+
+.vc-quest-item-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background: transparent;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+.vc-quest-item-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 40px;
+    flex: 1;
+}
+
+.vc-quest-item-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--header-primary, #f2f3f5);
+    line-height: 1.2;
+    margin-bottom: 4px;
+}
+
+.vc-quest-item-subtitle {
+    font-size: 12px;
+    color: var(--text-brand, #5865F2);
+    font-weight: 500;
+}
+
+.vc-quest-item-description {
+    font-size: 13px;
+    line-height: 1.2;
+    position: relative;
+    z-index: 1;
+}
+
+.vc-quest-item-details {
+    display: flex;
+    justify-content: flex-start;
+    gap: 12px;
+    font-size: 11px;
+    position: relative;
+    z-index: 1;
+    margin-top: 4px;
+}
+
+.vc-quest-item-info-box {
+    background: rgba(46, 46, 51, 0.85);
+    border-radius: 6px;
+    padding: 2px 10px 4px;
+    position: relative;
+    z-index: 1;
+}
+
+.vc-quest-progress-track {
+    height: 6px;
+    background: var(--background-modifier-active, #3f4147);
+    border-radius: 3px;
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
+    margin-top: 8px;
+}
+
+.vc-quest-progress-fill {
+    height: 100%;
+    background-color: var(--text-brand, #5865F2);
+    border-radius: 3px;
+    transition: width 1s linear;
+}
+
+.vc-quest-progress-fill.completed {
+    background-color: var(--text-positive, #23a559);
+    animation: vc-success-flash 1s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.vc-quest-progress-fill.error {
+    background-color: var(--text-danger, #da373c);
+}
+
+.vc-quest-progress-fill.running {
+    animation: vc-progress-pulse 2s infinite ease-in-out;
+}
+
+.vc-quest-item-footer {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--text-normal, #dbdee1);
+    font-weight: 500;
+    position: relative;
+    z-index: 1;
+    margin-top: 4px;
+}
+
+.vc-quest-status {
+    text-transform: capitalize;
+}
+
+.vc-quest-status.completed {
+    color: var(--text-positive, #23a559);
+}
+
+.vc-quest-status.error {
+    color: var(--text-danger, #da373c);
+}
+
+.vc-quest-status.running {
+    color: var(--text-brand, #5865F2);
+}
+
+.vc-quest-label {
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.vc-quest-data {
+    color: #b5bac1;
+}
+
+@keyframes vc-popout-fade {
+    from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes vc-progress-pulse {
+    0% { filter: brightness(1); box-shadow: 0 0 0px transparent; }
+    50% { filter: brightness(1.3); box-shadow: 0 0 10px var(--text-brand, #5865F2); }
+    100% { filter: brightness(1); box-shadow: 0 0 0px transparent; }
+}
+
+@keyframes vc-success-flash {
+    0% { filter: brightness(2.5); box-shadow: 0 0 20px var(--text-positive, #23a559); }
+    100% { filter: brightness(1); box-shadow: 0 0 0px transparent; }
+}
+
+@keyframes vc-item-stagger {
+    from {
+        opacity: 0;
+        transform: translateX(-15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}

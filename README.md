@@ -1,5 +1,7 @@
 ## <img alt="Logo" src="./assets/readme/logo.png" width="28" style="vertical-align: middle; border-radius: 6px;"> QuestCompleter
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/21b05de3bd3345ca9bcadd4f52724fe2)](https://app.codacy.com/gh/xbl1e/questcompleter?utm_source=github.com&utm_medium=referral&utm_content=xbl1e/questcompleter&utm_campaign=Badge_Grade)
+
 <p align="left">
   <a href="https://github.com/xbl1e/completeDiscordQuest/releases"><img src="https://img.shields.io/github/v/release/xbl1e/completeDiscordQuest?color=ADD8E6&logo=discord" alt="Latest Release"/></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-ADD8E6.svg" alt="License"/></a>

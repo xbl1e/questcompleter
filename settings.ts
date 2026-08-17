@@ -12,6 +12,11 @@ export default definePluginSettings({
         description: "Whether to accept available quests automatically.",
         default: false
     },
+    claimQuestsAutomatically: {
+        type: OptionType.BOOLEAN,
+        description: "Whether to claim completed quest rewards automatically.",
+        default: true
+    },
 
     showQuestsButtonSettingsBar: {
         type: OptionType.BOOLEAN,

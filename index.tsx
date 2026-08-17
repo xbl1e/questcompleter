@@ -1,7 +1,8 @@
 import definePlugin from "@utils/types";
+import { FluxDispatcher } from "@webpack/common";
 
 import { QuestButton, QuestsCount } from "./components/QuestButton";
-import { stopAllFarming, updateQuests } from "./core/manager";
+import { resetClaimState, stopAllFarming, updateQuests } from "./core/manager";
 import settings from "./settings";
 import { fakeApplications, fakeGames } from "./state";
 import { QuestsStore } from "./stores";
@@ -13,7 +14,7 @@ const COPYRIGHT_WARNING = [
     "",
     "If you paid for this extension, you have been SCAMMED. This plugin is 100% free.",
     "",
-    "Press OK to acknowledge."
+    "Press OK to acknowledge.",
 ].join("\n");
 
 const CONSENT_WARNING = [
@@ -23,16 +24,13 @@ const CONSENT_WARNING = [
     "",
     "Use this plugin at your own risk, as you may get flagged by doing so.",
     "",
-    "Press OK to keep using this plugin, or Cancel to keep automation disabled."
+    "Press OK to keep using this plugin, or Cancel to keep automation disabled.",
 ].join("\n");
 
-function ensureHasAcceptedToUsePlugin(): boolean {
-    if (settings.store.hasAcceptedToUsePlugin === true) {
-        return true;
-    }
+function ensureConsent(): boolean {
+    if (settings.store.hasAcceptedToUsePlugin) return true;
 
-    const copyrightAccepted = window.confirm(COPYRIGHT_WARNING);
-    if (!copyrightAccepted) return false;
+    if (!window.confirm(COPYRIGHT_WARNING)) return false;
 
     const accepted = window.confirm(CONSENT_WARNING);
     settings.store.hasAcceptedToUsePlugin = accepted;
@@ -45,20 +43,19 @@ export default definePlugin({
     authors: [{ name: "xbl1e", id: 1530954739431374989n }],
     settings,
     patches: [
-
         {
             find: "#{intl::USER_PROFILE_ACCOUNT_POPOUT_BUTTON_A11Y_LABEL}",
             replacement: {
                 match: /children:\[(?=.{0,25}?accountContainerRef)/,
-                replace: "children:[$self.renderQuestButtonSettingsBar(),"
-            }
+                replace: "children:[$self.renderQuestButtonSettingsBar(),",
+            },
         },
         {
             find: "\"innerRef\",\"navigate\",\"onClick\"",
             replacement: {
                 match: /(\i).createElement\("a",(\i)\)/,
-                replace: "$1.createElement(\"a\",$self.renderQuestButtonBadges($2))"
-            }
+                replace: "$1.createElement(\"a\",$self.renderQuestButtonBadges($2))",
+            },
         },
         {
             find: "\"RunningGameStore\"",
@@ -66,66 +63,74 @@ export default definePlugin({
             replacement: [
                 {
                     match: /}getRunningGames\(\){return/,
-                    replace: "}getRunningGames(){const games=$self.getRunningGames();return games ? games : "
+                    replace: "}getRunningGames(){const games=$self.getRunningGames();return games ? games : ",
                 },
                 {
                     match: /}getGameForPID\((\i)\){/,
-                    replace: "}getGameForPID($1){const pid=$self.getGameForPID($1);if(pid){return pid;}"
-                }
-            ]
+                    replace: "}getGameForPID($1){const pid=$self.getGameForPID($1);if(pid){return pid;}",
+                },
+            ],
         },
         {
             find: "ApplicationStreamingStore",
             replacement: {
                 match: /}getStreamerActiveStreamMetadata\(\){/,
-                replace: "}getStreamerActiveStreamMetadata(){const metadata=$self.getStreamerActiveStreamMetadata();if(metadata){return metadata;}"
-            }
-        }
+                replace: "}getStreamerActiveStreamMetadata(){const metadata=$self.getStreamerActiveStreamMetadata();if(metadata){return metadata;}",
+            },
+        },
     ],
-    start: () => {
-        if (!ensureHasAcceptedToUsePlugin()) {
+
+    start() {
+        if (!ensureConsent()) {
             stopAllFarming();
             return;
         }
         QuestsStore.addChangeListener(updateQuests);
-        setTimeout(() => {
-            updateQuests();
-        }, 8000);
+        FluxDispatcher.subscribe("LOGOUT", this._handleLogout);
+        FluxDispatcher.subscribe("CONNECTION_CLOSED", this._handleLogout);
+        setTimeout(updateQuests, 8000);
     },
-    stop: () => {
+
+    stop() {
         QuestsStore.removeChangeListener(updateQuests);
+        FluxDispatcher.unsubscribe("LOGOUT", this._handleLogout);
+        FluxDispatcher.unsubscribe("CONNECTION_CLOSED", this._handleLogout);
         stopAllFarming();
     },
 
-    renderQuestButtonTopBar() {
-        return null;
+    _handleLogout() {
+        stopAllFarming();
+        resetClaimState();
     },
-    renderQuestButtonSettingsBar() {
-        return <QuestButton type="settings-bar" />;
-    },
-    renderQuestButtonBadges(questButton) {
-        if (settings.store.showQuestsButtonBadges && typeof questButton === "string" && questButton === "quests") {
-            return (<QuestsCount />);
+
+    renderQuestButtonTopBar: () => null,
+    renderQuestButtonSettingsBar: () => <QuestButton type="settings-bar" />,
+
+    renderQuestButtonBadges(questButton: any) {
+        if (!settings.store.showQuestsButtonBadges) return questButton;
+
+        if (typeof questButton === "string" && questButton === "quests") {
+            return <QuestsCount />;
         }
-        if (settings.store.showQuestsButtonBadges && questButton?.href?.startsWith("/quest-home")
-            && Array.isArray(questButton?.children) && questButton.children.findIndex((child: any) => child?.type === QuestsCount) === -1) {
+
+        if (questButton?.href?.startsWith("/quest-home")
+            && Array.isArray(questButton?.children)
+            && questButton.children.findIndex((child: any) => child?.type === QuestsCount) === -1) {
             questButton.children.push(<QuestsCount />);
         }
+
         return questButton;
     },
+
     getRunningGames() {
-        if (fakeGames.size > 0) {
-            return Array.from(fakeGames.values());
-        }
+        if (fakeGames.size > 0) return Array.from(fakeGames.values());
     },
-    getGameForPID(pid) {
-        if (fakeGames.size > 0) {
-            return Array.from(fakeGames.values()).find(game => game.pid === pid);
-        }
+
+    getGameForPID(pid: number) {
+        if (fakeGames.size > 0) return Array.from(fakeGames.values()).find(g => g.pid === pid);
     },
+
     getStreamerActiveStreamMetadata() {
-        if (fakeApplications.size > 0) {
-            return Array.from(fakeApplications.values()).at(0);
-        }
-    }
+        if (fakeApplications.size > 0) return Array.from(fakeApplications.values()).at(0);
+    },
 });

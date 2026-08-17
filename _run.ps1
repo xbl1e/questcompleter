@@ -115,10 +115,59 @@ if (-not $VencordDir) {
     Write-Pastel ">" 173 216 230
     Write-Pastel " Found Vencord at: $VencordDir" 255 255 255
     Write-Host ""
+
+    $vencordNeedsUpdate = $false
+    Show-Spinner "Checking for Vencord updates..." {
+        Set-Location $using:VencordDir
+        cmd.exe /c "git fetch 2>&1"
+        $local = (cmd.exe /c "git rev-parse HEAD 2>&1").Trim()
+        $remote = (cmd.exe /c "git rev-parse @{u} 2>&1").Trim()
+        if ($local -ne $remote) { return "needs-update" }
+        return "up-to-date"
+    } -OutVariable vencordResult | Out-Null
+
+    if ($vencordResult -eq "needs-update") {
+        Show-Spinner "Updating Vencord..." {
+            Set-Location $using:VencordDir
+            cmd.exe /c "git pull 2>&1"
+            if ($LASTEXITCODE -ne 0) { throw "Updating Vencord failed" }
+        } | Out-Null
+    } else {
+        Write-Host -NoNewline "  "
+        Write-Pastel ">" 173 216 230
+        Write-Pastel " Vencord is already up to date." 255 255 255
+        Write-Host ""
+    }
 }
 
 Write-Host ""
 
+if (Test-Path (Join-Path $ScriptDir ".git")) {
+    $extNeedsUpdate = $false
+    Show-Spinner "Checking for extension updates..." {
+        Set-Location $using:ScriptDir
+        cmd.exe /c "git fetch 2>&1"
+        $local = (cmd.exe /c "git rev-parse HEAD 2>&1").Trim()
+        $remote = (cmd.exe /c "git rev-parse @{u} 2>&1").Trim()
+        if ($local -ne $remote) { return "needs-update" }
+        return "up-to-date"
+    } -OutVariable extResult | Out-Null
+
+    if ($extResult -eq "needs-update") {
+        Show-Spinner "Updating extension..." {
+            Set-Location $using:ScriptDir
+            cmd.exe /c "git pull 2>&1"
+            if ($LASTEXITCODE -ne 0) { throw "Updating extension failed" }
+        } | Out-Null
+    } else {
+        Write-Host -NoNewline "  "
+        Write-Pastel ">" 173 216 230
+        Write-Pastel " Extension is already up to date." 255 255 255
+        Write-Host ""
+    }
+}
+
+Write-Host ""
 $PluginName = "QuestCompleter"
 $PluginSource = $ScriptDir.TrimEnd('\')
 $PluginDest = Join-Path $VencordDir "src\userplugins\$PluginName"

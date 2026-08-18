@@ -1,4 +1,4 @@
-import { claimQuest, enrollQuest } from "../api";
+import { enrollQuest } from "../api";
 import settings from "../settings";
 import { completingQuest, fakeApplications, fakeGames, questProgress, questStartTimes, removeProgress, updateProgress } from "../state";
 import { QuestsStore } from "../stores";
@@ -8,25 +8,10 @@ import { completeQuest } from "./farmer";
 import { jitteredDelay } from "./utils";
 
 const STALE_TIMEOUT_MS = 60_000;
-const CLAIM_COOLDOWN_MS = 60_000;
-const claimedAttempts = new Set<string>();
 const enrolledAttempts = new Set<string>();
-const failedClaimCooldowns = new Map<string, number>();
-
-function isClaimOnCooldown(questId: string): boolean {
-    const lastFailed = failedClaimCooldowns.get(questId);
-    if (!lastFailed) return false;
-    if (Date.now() - lastFailed > CLAIM_COOLDOWN_MS) {
-        failedClaimCooldowns.delete(questId);
-        return false;
-    }
-    return true;
-}
 
 export function resetClaimState() {
-    claimedAttempts.clear();
     enrolledAttempts.clear();
-    failedClaimCooldowns.clear();
 }
 
 function isExpired(quest: QuestValue): boolean {
@@ -86,7 +71,6 @@ function purgeRemovedQuests(activeIds: Set<string>) {
             fakeApplications.delete(questId);
             completingQuest.delete(questId);
             questStartTimes.delete(questId);
-            claimedAttempts.delete(questId);
             enrolledAttempts.delete(questId);
             removeProgress(questId);
         }
@@ -121,19 +105,6 @@ export function updateQuests() {
             if (settings.store.acceptQuestsAutomatically && isQuestEligibleForFarming(quest) && !enrolledAttempts.has(quest.id)) {
                 enrolledAttempts.add(quest.id);
                 jitteredDelay(1000, 5000).then(() => enrollQuest(quest.id).catch(() => null));
-            }
-            continue;
-        }
-
-        if (quest.userStatus.completedAt && !quest.userStatus.claimedAt) {
-            if (settings.store.claimQuestsAutomatically && !claimedAttempts.has(quest.id) && !isClaimOnCooldown(quest.id)) {
-                claimedAttempts.add(quest.id);
-                jitteredDelay(1000, 5000).then(() =>
-                    claimQuest(quest.id).catch(() => {
-                        claimedAttempts.delete(quest.id);
-                        failedClaimCooldowns.set(quest.id, Date.now());
-                    })
-                );
             }
             continue;
         }

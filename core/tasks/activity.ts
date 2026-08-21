@@ -5,10 +5,14 @@ import { sleep } from "../utils";
 
 const HEARTBEAT_INTERVAL_MS = 20_000;
 
+interface GuildData {
+    VOCAL?: Array<{ channel?: { id?: string } }>;
+}
+
 function resolveStreamKey(): string | undefined {
-    const channelId = ChannelStore.getSortedPrivateChannels()[0]?.id
-        ?? Object.values(GuildChannelStore.getAllGuilds())
-            .find((x: any) => x?.VOCAL?.length > 0)?.VOCAL?.[0]?.channel?.id;
+    const channelId = ChannelStore.getSortedPrivateChannels?.()?.[0]?.id
+        ?? Array.from((GuildChannelStore.getAllGuilds() as unknown as Map<string, GuildData>).values())
+            .find(x => x?.VOCAL && x.VOCAL.length > 0)?.VOCAL?.[0]?.channel?.id;
 
     return channelId ? `call:${channelId}:1` : undefined;
 }

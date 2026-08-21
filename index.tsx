@@ -7,6 +7,12 @@ import settings from "./settings";
 import { fakeApplications, fakeGames } from "./state";
 import { QuestsStore } from "./stores";
 
+interface QuestButtonNode {
+    href?: string;
+    children?: Array<{ type?: unknown }>;
+    [key: string]: unknown;
+}
+
 const COPYRIGHT_WARNING = [
     "All rights reserved to xbl1e.",
     "",
@@ -106,17 +112,20 @@ export default definePlugin({
     renderQuestButtonTopBar: () => null,
     renderQuestButtonSettingsBar: () => <QuestButton type="settings-bar" />,
 
-    renderQuestButtonBadges(questButton: any) {
+    renderQuestButtonBadges(questButton: string | QuestButtonNode) {
         if (!settings.store.showQuestsButtonBadges) return questButton;
 
         if (typeof questButton === "string" && questButton === "quests") {
             return <QuestsCount />;
         }
 
-        if (questButton?.href?.startsWith("/quest-home")
-            && Array.isArray(questButton?.children)
-            && questButton.children.findIndex((child: any) => child?.type === QuestsCount) === -1) {
-            questButton.children.push(<QuestsCount />);
+        if (typeof questButton === "object" && questButton !== null) {
+            const btn = questButton as QuestButtonNode;
+            if (btn.href?.startsWith("/quest-home")
+                && Array.isArray(btn.children)
+                && btn.children.findIndex(child => child?.type === QuestsCount) === -1) {
+                btn.children.push(<QuestsCount />);
+            }
         }
 
         return questButton;

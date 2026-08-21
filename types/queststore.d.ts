@@ -104,6 +104,8 @@ interface Messages {
     questName: string;
     gameTitle: string;
     gamePublisher: string;
+    questDescription?: string;
+    rewardName?: string;
 }
 
 interface Colors {
@@ -117,7 +119,14 @@ interface Assets {
     questBarHero: string;
     questBarHeroVideo: string;
     gameTile: string;
+    gameTileDark?: string;
+    gameTileLight?: string;
     logotype: string;
+    logotypeDark?: string;
+    logotypeLight?: string;
+    game_tile?: string;
+    rewardTile?: string;
+    [key: string]: string | undefined;
 }
 
 interface Application {

@@ -1,6 +1,7 @@
 import { FluxDispatcher } from "@webpack/common";
 
 import { completingQuest, questStartTimes, updateProgress } from "../../state";
+import type { HeartbeatEvent } from "../../types/models";
 import { injectFakeApp, removeFakeApp } from "../fakes";
 
 export async function farmStream(quest: QuestValue, applicationId: string, applicationName: string, secondsNeeded: number) {
@@ -16,7 +17,7 @@ export async function farmStream(quest: QuestValue, applicationId: string, appli
     injectFakeApp(quest.id, fakeApp);
 
     return new Promise<boolean>(resolve => {
-        const handler = (event: any) => {
+        const handler = (event: HeartbeatEvent) => {
             if (event.questId !== quest.id) return;
 
             const progress = quest.config.configVersion === 1

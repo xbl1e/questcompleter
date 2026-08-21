@@ -2,38 +2,43 @@ import { FluxDispatcher } from "@webpack/common";
 
 import { fakeApplications, fakeGames } from "../state";
 import { ApplicationStreamingStore, RunningGameStore } from "../stores";
+import type { FakeApplication, FakeGame } from "../types/models";
 
 function ensureGameStorePatched() {
-    if ((RunningGameStore as any)._originalGetRunningGames) return;
+    if (RunningGameStore._originalGetRunningGames) return;
 
-    (RunningGameStore as any)._originalGetRunningGames = RunningGameStore.getRunningGames;
-    (RunningGameStore as any)._originalGetGameForPID = RunningGameStore.getGameForPID;
+    RunningGameStore._originalGetRunningGames = RunningGameStore.getRunningGames;
+    RunningGameStore._originalGetGameForPID = RunningGameStore.getGameForPID;
 
     RunningGameStore.getRunningGames = () =>
         fakeGames.size > 0
             ? Array.from(fakeGames.values())
-            : (RunningGameStore as any)._originalGetRunningGames.call(RunningGameStore);
+            : (RunningGameStore._originalGetRunningGames?.call(RunningGameStore) ?? []);
 
     RunningGameStore.getGameForPID = (p: number) => {
         if (fakeGames.size > 0) {
             const found = Array.from(fakeGames.values()).find(g => g.pid === p);
             if (found) return found;
         }
-        return (RunningGameStore as any)._originalGetGameForPID.call(RunningGameStore, p);
+        return RunningGameStore._originalGetGameForPID?.call(RunningGameStore, p);
     };
 }
 
 function restoreGameStoreIfEmpty() {
     if (fakeGames.size > 0) return;
-    if (!(RunningGameStore as any)._originalGetRunningGames) return;
+    if (!RunningGameStore._originalGetRunningGames) return;
 
-    RunningGameStore.getRunningGames = (RunningGameStore as any)._originalGetRunningGames;
-    RunningGameStore.getGameForPID = (RunningGameStore as any)._originalGetGameForPID;
-    delete (RunningGameStore as any)._originalGetRunningGames;
-    delete (RunningGameStore as any)._originalGetGameForPID;
+    if (RunningGameStore._originalGetRunningGames) {
+        RunningGameStore.getRunningGames = RunningGameStore._originalGetRunningGames;
+    }
+    if (RunningGameStore._originalGetGameForPID) {
+        RunningGameStore.getGameForPID = RunningGameStore._originalGetGameForPID;
+    }
+    delete RunningGameStore._originalGetRunningGames;
+    delete RunningGameStore._originalGetGameForPID;
 }
 
-export function injectFakeGame(questId: string, fakeGame: any) {
+export function injectFakeGame(questId: string, fakeGame: FakeGame) {
     const realGames = fakeGames.size === 0 ? RunningGameStore.getRunningGames() : [];
     fakeGames.set(questId, fakeGame);
     ensureGameStorePatched();
@@ -62,27 +67,27 @@ export function removeFakeGame(questId: string) {
     });
 }
 
-export function injectFakeApp(questId: string, fakeApp: any) {
+export function injectFakeApp(questId: string, fakeApp: FakeApplication) {
     fakeApplications.set(questId, fakeApp);
 
-    if (!(ApplicationStreamingStore as any)._originalGetStreamerActiveStreamMetadata) {
-        (ApplicationStreamingStore as any)._originalGetStreamerActiveStreamMetadata =
+    if (!ApplicationStreamingStore._originalGetStreamerActiveStreamMetadata) {
+        ApplicationStreamingStore._originalGetStreamerActiveStreamMetadata =
             ApplicationStreamingStore.getStreamerActiveStreamMetadata;
     }
 
     ApplicationStreamingStore.getStreamerActiveStreamMetadata = () =>
         fakeApplications.size > 0
             ? Array.from(fakeApplications.values())[0]
-            : (ApplicationStreamingStore as any)._originalGetStreamerActiveStreamMetadata.call(ApplicationStreamingStore);
+            : ApplicationStreamingStore._originalGetStreamerActiveStreamMetadata?.call(ApplicationStreamingStore);
 }
 
 export function removeFakeApp(questId: string) {
     fakeApplications.delete(questId);
 
-    if (fakeApplications.size === 0 && (ApplicationStreamingStore as any)._originalGetStreamerActiveStreamMetadata) {
+    if (fakeApplications.size === 0 && ApplicationStreamingStore._originalGetStreamerActiveStreamMetadata) {
         ApplicationStreamingStore.getStreamerActiveStreamMetadata =
-            (ApplicationStreamingStore as any)._originalGetStreamerActiveStreamMetadata;
-        delete (ApplicationStreamingStore as any)._originalGetStreamerActiveStreamMetadata;
+            ApplicationStreamingStore._originalGetStreamerActiveStreamMetadata;
+        delete ApplicationStreamingStore._originalGetStreamerActiveStreamMetadata;
     }
 }
 
@@ -97,10 +102,10 @@ export function removeAllFakes() {
 
     if (fakeApplications.size > 0) {
         fakeApplications.clear();
-        if ((ApplicationStreamingStore as any)._originalGetStreamerActiveStreamMetadata) {
+        if (ApplicationStreamingStore._originalGetStreamerActiveStreamMetadata) {
             ApplicationStreamingStore.getStreamerActiveStreamMetadata =
-                (ApplicationStreamingStore as any)._originalGetStreamerActiveStreamMetadata;
-            delete (ApplicationStreamingStore as any)._originalGetStreamerActiveStreamMetadata;
+                ApplicationStreamingStore._originalGetStreamerActiveStreamMetadata;
+            delete ApplicationStreamingStore._originalGetStreamerActiveStreamMetadata;
         }
     }
 }

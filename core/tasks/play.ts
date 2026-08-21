@@ -2,6 +2,7 @@ import { FluxDispatcher } from "@webpack/common";
 
 import { fetchPublicApplications } from "../../api";
 import { completingQuest, questStartTimes, updateProgress } from "../../state";
+import type { HeartbeatEvent } from "../../types/models";
 import { injectFakeGame, removeFakeGame } from "../fakes";
 
 export async function farmPlay(quest: QuestValue, applicationId: string, applicationName: string, secondsNeeded: number) {
@@ -14,7 +15,8 @@ export async function farmPlay(quest: QuestValue, applicationId: string, applica
         executables: [{ os: "win32", name: "mockgame.exe" }],
     };
 
-    const exeName = appData.executables?.find((x: any) => x.os === "win32")?.name?.replace(">", "")
+    const exeName = (appData.executables as Array<{ os: string; name: string }> | undefined)
+        ?.find(x => x.os === "win32")?.name?.replace(">", "")
         ?? appData.name.replace(/[/\\:*?"<>|]/g, "") + ".exe";
 
     const fakeGame = {
@@ -38,7 +40,7 @@ export async function farmPlay(quest: QuestValue, applicationId: string, applica
     injectFakeGame(quest.id, fakeGame);
 
     return new Promise<boolean>(resolve => {
-        const handler = (event: any) => {
+        const handler = (event: HeartbeatEvent) => {
             if (event.questId !== quest.id) return;
 
             const progress = quest.config.configVersion === 1

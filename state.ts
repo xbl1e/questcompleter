@@ -1,3 +1,5 @@
+import type { FakeApplication, FakeGame } from "./types/models";
+
 export interface QuestProgress {
     questName: string;
     gameName: string;
@@ -8,8 +10,8 @@ export interface QuestProgress {
 }
 
 export const completingQuest = new Map<string, boolean>();
-export const fakeGames = new Map<string, any>();
-export const fakeApplications = new Map<string, any>();
+export const fakeGames = new Map<string, FakeGame>();
+export const fakeApplications = new Map<string, FakeApplication>();
 export const questStartTimes = new Map<string, { startedAt: number; lastProgress: number }>();
 export const questProgress = new Map<string, QuestProgress>();
 
